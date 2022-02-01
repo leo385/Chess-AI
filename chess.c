@@ -142,15 +142,6 @@ void drawMap();
 
 
 
-//swap func
-void swap_nums(int *x1, int *x2)
-{
-    int tmp = *x1;
-    *x1 = *x2;    
-    *x2 = tmp;
-}
-
-
 //logic piece func
 void piece_switch(unordered_map * map, char* mark, int j, int i)
 {
