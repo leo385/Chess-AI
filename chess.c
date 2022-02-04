@@ -77,8 +77,8 @@ typedef char* UTF_8;
 
 
 //input variable duplicate description other file
-static int stdin_copy;
-
+static int stdin_copy = 0;
+static int bIsMove = 0;
 
 //Chess fields
 UTF_8 WhiteField = " ■";
@@ -142,16 +142,11 @@ void drawMap();
 
 
 
+
 //logic piece func
 void piece_switch(unordered_map * map, char* mark, int j, int i)
 {
 	char buffr[3] = "";	
-	int nRangePawnIter = 0;
-	int bPawnHasStarted = 0;
-	int nHowMuchFieldsBetween = 0;
-
-	const char* to_where_field = NULL;
-	const char* from_where_field = NULL;
 
 	//duplicate file's description
 	stdin_copy = dup(STDIN_FILENO);
@@ -164,63 +159,190 @@ void piece_switch(unordered_map * map, char* mark, int j, int i)
 	printf("What's field you move to?: ");
 	gets(buffr, sizeof(buffr), stdin_copy);
 
-		
-	if(STR_COMP((board_marks[j][i], mark)) == 0 && board_num[j][i] != 0 && board_num[j][i] != -1)
-	{
-		from_where_field = board_marks[j][i];
-	}
-
 
 	switch(map[j * i]._value)
 	{
-		case 7: //Black Pawns	
-			for(int it_backward = i - WIDTH; it_backward < i; i -= WIDTH)
-			{	
-				//These statements checking 'if fields are oposite' not 'across' for pawns
-				if(STR_COMP((board_marks[j][it_backward], buffr)) == 0 && board_num[j][it_backward] == -1)
-				{	
-					board_num[j][it_backward] = board_num[j][i];
 
-					//replace piece pawn with field from both arrays.
-					board_num[j][i] = board_fields[j][i];
-				}	
+		case 1: //Black Pawns
 
-				if(STR_COMP((board_marks[j][it_backward], buffr)) == 0 && board_num[j][it_backward] == 0)
-				{	
-					board_num[j][it_backward] = board_num[j][i];
+		    if(bIsMove)
+		    {		
+			    	//Complexity O(n^1)+
+				for(int it_forward = i; it_forward < 16; it_forward += WIDTH)
+				{
+				
+					//A2 - H2 Fields only can move 2 fields	
+					if(STR_COMP((mark, board_marks[1][it_forward - WIDTH])) == 0)
+					{
 
-					//replace piece pawn with field from both arrays.
-					board_num[j][i] = board_fields[j][i];
+						//2 fields forward ++ if didn't start yet
+					
+						if(STR_COMP((board_marks[j][it_forward + 8], buffr)) == 0 && board_num[j][it_forward] == -1)
+						{
+							board_num[j][it_forward + 8] = board_num[j][i];
+
+							board_num[j][i] = board_fields[j][i];
+
+							bIsMove = 0; //and move for white next
+						}	
+
+						if(STR_COMP((board_marks[j][it_forward + 8], buffr)) == 0 && board_num[j][it_forward] == 0)
+						{	
+							board_num[j][it_forward + 8] = board_num[j][i];
+
+							board_num[j][i] = board_fields[j][i];
+
+							bIsMove = 0; //and move for white next
+
+						}
+						//EOC_per 2 fields
+
+					}	
+
+					//Pawn move per 1 field
+					if(STR_COMP((board_marks[j][it_forward], buffr)) == 0 && board_num[j][it_forward] == -1)
+					{
+						board_num[j][it_forward] = board_num[j][i];
+
+						board_num[j][i] = board_fields[j][i];
+						
+						bIsMove = 0; //and move for white next
+					}	
+
+					if(STR_COMP((board_marks[j][it_forward], buffr)) == 0 && board_num[j][it_forward] == 0)
+					{	
+						board_num[j][it_forward] = board_num[j][i];
+
+						board_num[j][i] = board_fields[j][i];
+
+						bIsMove = 0; //and move for white next
+
+					}	
+					//per 1 field
+
+					//check hitting
+					if(STR_COMP((board_marks[j][it_forward - 1], buffr)) == 0 && board_num[j][it_forward - 1] != -1 
+						&& board_num[j][it_forward - 1] != 0)
+					{
+						
+						board_num[j][it_forward - 1] = board_num[j][i];
+						board_num[j][i] = board_fields[j][i];
+
+						bIsMove = 0;
+
+					}	
+	
+					if(STR_COMP((board_marks[j][it_forward + 1], buffr)) == 0 && board_num[j][it_forward + 1] != -1 
+						&& board_num[j][it_forward + 1] != 0)
+					{
+						
+						board_num[j][it_forward + 1] = board_num[j][i];
+						board_num[j][i] = board_fields[j][i];
+
+						bIsMove = 0;	
+					}	
+					//EOC_HITTING
+
+
 				}
 
-			}
+		    }
 
 		break;
 
-		
-		case 1: //White Pawns
-			for(int it_forward = i + WIDTH; i < it_forward; i += WIDTH)
-			{
-				if(STR_COMP((board_marks[j][it_forward], buffr)) == 0 && board_num[j][it_forward] == -1)
+
+		case 7: //White Pawns
+
+		    if(!bIsMove)
+		    {	    
+				for(int it_backward = i - 16; it_backward < i; i -= WIDTH)
 				{
-					board_num[j][it_forward] = board_num[j][i];
 
-					board_num[j][i] = board_fields[j][i];
-				}	
+					//A2 - H2 Fields only can move 2 fields	
+					if(STR_COMP((mark, board_marks[6][i])) == 0)
+					{
 
-				if(STR_COMP((board_marks[j][it_forward], buffr)) == 0 && board_num[j][it_forward] == 0)
-				{	
-					board_num[j][it_forward] = board_num[j][i];
+						//2 fields forward ++ if didn't start yet
+					
+						if(STR_COMP((board_marks[j][it_backward], buffr)) == 0 && board_num[j][it_backward] == -1)
+						{
+							board_num[j][it_backward] = board_num[j][i];
 
-					board_num[j][i] = board_fields[j][i];
-				}	
-			
+							board_num[j][i] = board_fields[j][i];
 
-			}
+							bIsMove = 1; //and move for white next
+						}	
 
-		break;
+						if(STR_COMP((board_marks[j][it_backward], buffr)) == 0 && board_num[j][it_backward] == 0)
+						{	
+							board_num[j][it_backward] = board_num[j][i];
+
+							board_num[j][i] = board_fields[j][i];
+
+							bIsMove = 1; //and move for white next
+
+						}
+						//EOC_per 2 fields
+
+					}	
+
+					//Per 1 field - These statements checking 'if fields are oposite' not 'across' for pawns
+					if(STR_COMP((board_marks[j][it_backward + 8], buffr)) == 0 && board_num[j][it_backward + 8] == -1)
+					{	
+						
+						board_num[j][it_backward + 8] = board_num[j][i];
+
+						//replace piece pawn with field from both arrays.
+						board_num[j][i] = board_fields[j][i];
+
+		   				bIsMove = 1; //and next move for black 
+					}	
+
+					if(STR_COMP((board_marks[j][it_backward + 8], buffr)) == 0 && board_num[j][it_backward + 8] == 0)
+					{	
+						board_num[j][it_backward + 8] = board_num[j][i];
+
+						//replace piece pawn with field from both arrays.
+						board_num[j][i] = board_fields[j][i];
+
+						bIsMove = 1; //and next move for black 
+					}
+					//EOC_per 1 field
+
+					//check hitting
+					if(STR_COMP((board_marks[j][i - 9], buffr)) == 0 && board_num[j][i - 9] != -1 
+						&& board_num[j][i - 9] != 0)
+					{
+						board_num[j][i - 9] = board_num[j][i];
+
+						board_num[j][i] = board_fields[j][i];
+
+						bIsMove = 1;	
+					}	
+
+					
+					if(STR_COMP((board_marks[j][i - 7], buffr)) == 0 && board_num[j][i - 7] != -1 
+						&& board_num[j][i - 7] != 0)
+					{
+						
+						board_num[j][i - 7] = board_num[j][i];
+
+						board_num[j][i] = board_fields[j][i];
+
+						bIsMove = 1;	
+					}
+				
+					//EOC_HITTING
+
+				}
+
+
+	            }
 		
+		    
+		break;
 
+	
 	}
 
 }
@@ -230,7 +352,6 @@ int main(void)
    unordered_map umap_chess[WIDTH * HEIGHT];   
 
    int rc = 0;
-
    char buffr_mark[3] = "";
 
    stdin_copy = dup(STDIN_FILENO);
@@ -243,11 +364,12 @@ label:
     //remove garbage from stdin - clean description other file
     tcdrain(stdin_copy);
     tcflush(stdin_copy, TCIFLUSH);
-    close(stdin_copy);
-   
+    close(stdin_copy); 
+
    printf("\nChoose a piece by typing field's mark: ");
    gets(buffr_mark, sizeof(buffr_mark), stdin_copy); //for ints no files invalid in C99
-    
+   
+   //Complexity (n^2)+ 
    for(int j = 0; j < WIDTH; j++)
    {
 	   for(int i = 0; i < HEIGHT; i++) 
