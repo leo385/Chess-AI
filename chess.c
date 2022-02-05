@@ -18,8 +18,30 @@
 //Macro goto-loop
 #define _GAME_STATE_LOOP goto label
 
-//Strings compare macro
+//Strings compare-macro
 #define STR_COMP(pargs) strcmp pargs
+
+//Pawns move statement-macro
+#define M_PAWN_CHECK_MOVE(ITERATOR, ADDITIONAL_COLS, FIELD_NUM, BOOLEAN_IS_MOVE) \
+	if(STR_COMP((board_marks[j][ITERATOR + ADDITIONAL_COLS], buffr)) == 0 && board_num[j][ITERATOR + ADDITIONAL_COLS] == FIELD_NUM) \
+	{\
+		board_num[j][ITERATOR + ADDITIONAL_COLS] = board_num[j][i]; \
+		board_num[j][i] = board_fields[j][i]; \
+		bIsMove = BOOLEAN_IS_MOVE; \
+	} \
+/*M_PAWN_CHECK_MOVE*/
+
+//Pawn hit statement-macro
+#define M_PAWN_CHECK_HIT(ITERATOR, ADDITIONAL_COLS, BOOLEAN_IS_MOVE) \
+	if(STR_COMP((board_marks[j][ITERATOR + ADDITIONAL_COLS], buffr)) == 0 && \
+			board_num[j][ITERATOR + ADDITIONAL_COLS] != -1 && board_num[j][ITERATOR + ADDITIONAL_COLS] != 0) \
+			{ board_num[j][ITERATOR + ADDITIONAL_COLS] = board_num[j][i]; \
+			board_num[j][i] = board_fields[j][i]; \
+			bIsMove = BOOLEAN_IS_MOVE; \
+}	
+/*M_PAWN_CHECK_HIT*/
+
+
 
 #ifndef _MY_CONTAINER_MAP
 #define _MY_CONTAINER_MAP
@@ -142,7 +164,6 @@ void drawMap();
 
 
 
-
 //logic piece func
 void piece_switch(unordered_map * map, char* mark, int j, int i)
 {
@@ -174,76 +195,20 @@ void piece_switch(unordered_map * map, char* mark, int j, int i)
 					//A2 - H2 Fields only can move 2 fields	
 					if(STR_COMP((mark, board_marks[1][it_forward - WIDTH])) == 0)
 					{
-
-						//2 fields forward ++ if didn't start yet
-					
-						if(STR_COMP((board_marks[j][it_forward + 8], buffr)) == 0 && board_num[j][it_forward] == -1)
-						{
-							board_num[j][it_forward + 8] = board_num[j][i];
-
-							board_num[j][i] = board_fields[j][i];
-
-							bIsMove = 0; //and move for white next
-						}	
-
-						if(STR_COMP((board_marks[j][it_forward + 8], buffr)) == 0 && board_num[j][it_forward] == 0)
-						{	
-							board_num[j][it_forward + 8] = board_num[j][i];
-
-							board_num[j][i] = board_fields[j][i];
-
-							bIsMove = 0; //and move for white next
-
-						}
-						//EOC_per 2 fields
-
+						//2 fields forward ++ if didn't start yet	
+						M_PAWN_CHECK_MOVE(it_forward, 8, -1, 0); 
+						M_PAWN_CHECK_MOVE(it_forward, 8, 0, 0); 
 					}	
+
 
 					//Pawn move per 1 field
-					if(STR_COMP((board_marks[j][it_forward], buffr)) == 0 && board_num[j][it_forward] == -1)
-					{
-						board_num[j][it_forward] = board_num[j][i];
-
-						board_num[j][i] = board_fields[j][i];
-						
-						bIsMove = 0; //and move for white next
-					}	
-
-					if(STR_COMP((board_marks[j][it_forward], buffr)) == 0 && board_num[j][it_forward] == 0)
-					{	
-						board_num[j][it_forward] = board_num[j][i];
-
-						board_num[j][i] = board_fields[j][i];
-
-						bIsMove = 0; //and move for white next
-
-					}	
-					//per 1 field
+					M_PAWN_CHECK_MOVE(it_forward, 0, -1, 0);
+					M_PAWN_CHECK_MOVE(it_forward, 0, 0, 0);
 
 					//check hitting
-					if(STR_COMP((board_marks[j][it_forward - 1], buffr)) == 0 && board_num[j][it_forward - 1] != -1 
-						&& board_num[j][it_forward - 1] != 0)
-					{
-						
-						board_num[j][it_forward - 1] = board_num[j][i];
-						board_num[j][i] = board_fields[j][i];
-
-						bIsMove = 0;
-
-					}	
+					M_PAWN_CHECK_HIT(it_forward, -1, 0);
+					M_PAWN_CHECK_HIT(it_forward, 1, 0);
 	
-					if(STR_COMP((board_marks[j][it_forward + 1], buffr)) == 0 && board_num[j][it_forward + 1] != -1 
-						&& board_num[j][it_forward + 1] != 0)
-					{
-						
-						board_num[j][it_forward + 1] = board_num[j][i];
-						board_num[j][i] = board_fields[j][i];
-
-						bIsMove = 0;	
-					}	
-					//EOC_HITTING
-
-
 				}
 
 		    }
@@ -261,81 +226,21 @@ void piece_switch(unordered_map * map, char* mark, int j, int i)
 					//A2 - H2 Fields only can move 2 fields	
 					if(STR_COMP((mark, board_marks[6][i])) == 0)
 					{
-
 						//2 fields forward ++ if didn't start yet
-					
-						if(STR_COMP((board_marks[j][it_backward], buffr)) == 0 && board_num[j][it_backward] == -1)
-						{
-							board_num[j][it_backward] = board_num[j][i];
-
-							board_num[j][i] = board_fields[j][i];
-
-							bIsMove = 1; //and move for white next
-						}	
-
-						if(STR_COMP((board_marks[j][it_backward], buffr)) == 0 && board_num[j][it_backward] == 0)
-						{	
-							board_num[j][it_backward] = board_num[j][i];
-
-							board_num[j][i] = board_fields[j][i];
-
-							bIsMove = 1; //and move for white next
-
-						}
-						//EOC_per 2 fields
-
+						M_PAWN_CHECK_MOVE(it_backward, 0, -1, 1);
+						M_PAWN_CHECK_MOVE(it_backward, 0, 0, 1);
 					}	
+
 
 					//Per 1 field - These statements checking 'if fields are oposite' not 'across' for pawns
-					if(STR_COMP((board_marks[j][it_backward + 8], buffr)) == 0 && board_num[j][it_backward + 8] == -1)
-					{	
-						
-						board_num[j][it_backward + 8] = board_num[j][i];
+					M_PAWN_CHECK_MOVE(it_backward, 8, -1, 1);
+					M_PAWN_CHECK_MOVE(it_backward, 8, 0, 1);
 
-						//replace piece pawn with field from both arrays.
-						board_num[j][i] = board_fields[j][i];
-
-		   				bIsMove = 1; //and next move for black 
-					}	
-
-					if(STR_COMP((board_marks[j][it_backward + 8], buffr)) == 0 && board_num[j][it_backward + 8] == 0)
-					{	
-						board_num[j][it_backward + 8] = board_num[j][i];
-
-						//replace piece pawn with field from both arrays.
-						board_num[j][i] = board_fields[j][i];
-
-						bIsMove = 1; //and next move for black 
-					}
-					//EOC_per 1 field
-
-					//check hitting
-					if(STR_COMP((board_marks[j][i - 9], buffr)) == 0 && board_num[j][i - 9] != -1 
-						&& board_num[j][i - 9] != 0)
-					{
-						board_num[j][i - 9] = board_num[j][i];
-
-						board_num[j][i] = board_fields[j][i];
-
-						bIsMove = 1;	
-					}	
-
-					
-					if(STR_COMP((board_marks[j][i - 7], buffr)) == 0 && board_num[j][i - 7] != -1 
-						&& board_num[j][i - 7] != 0)
-					{
-						
-						board_num[j][i - 7] = board_num[j][i];
-
-						board_num[j][i] = board_fields[j][i];
-
-						bIsMove = 1;	
-					}
-				
-					//EOC_HITTING
+					//check hitting	
+					M_PAWN_CHECK_HIT(i, -9, 1);
+					M_PAWN_CHECK_HIT(i, -7, 1);
 
 				}
-
 
 	            }
 		
