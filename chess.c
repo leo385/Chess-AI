@@ -22,25 +22,36 @@
 #define STR_COMP(pargs) strcmp pargs
 
 //Pawns move statement-macro
-#define M_PAWN_CHECK_MOVE(ITERATOR, ADDITIONAL_COLS, FIELD_NUM, BOOLEAN_IS_MOVE) \
-	if(STR_COMP((board_marks[j][ITERATOR + ADDITIONAL_COLS], buffr)) == 0 && board_num[j][ITERATOR + ADDITIONAL_COLS] == FIELD_NUM) \
+#define M_PIECE_CHECK_MOVE(ITERATOR_ROWS, ADDITIONAL_ROWS, ITERATOR_COLS, ADDITIONAL_COLS, FIELD_NUM, BOOLEAN_IS_MOVE)\
+	if(STR_COMP((board_marks[ITERATOR_ROWS + ADDITIONAL_ROWS][ITERATOR_COLS + ADDITIONAL_COLS], buffr)) == 0 && board_num[ITERATOR_ROWS + ADDITIONAL_ROWS][ITERATOR_COLS + ADDITIONAL_COLS] == FIELD_NUM)\
 	{\
-		board_num[j][ITERATOR + ADDITIONAL_COLS] = board_num[j][i]; \
-		board_num[j][i] = board_fields[j][i]; \
-		bIsMove = BOOLEAN_IS_MOVE; \
-	} \
+		board_num[ITERATOR_ROWS + ADDITIONAL_ROWS][ITERATOR_COLS + ADDITIONAL_COLS] = board_num[j][i];\
+		board_num[j][i] = board_fields[j][i];\
+		bIsMove = BOOLEAN_IS_MOVE;\
+	}
 /*M_PAWN_CHECK_MOVE*/
 
 //Pawn hit statement-macro
-#define M_PAWN_CHECK_HIT(ITERATOR, ADDITIONAL_COLS, BOOLEAN_IS_MOVE) \
-	if(STR_COMP((board_marks[j][ITERATOR + ADDITIONAL_COLS], buffr)) == 0 && \
-			board_num[j][ITERATOR + ADDITIONAL_COLS] != -1 && board_num[j][ITERATOR + ADDITIONAL_COLS] != 0) \
-			{ board_num[j][ITERATOR + ADDITIONAL_COLS] = board_num[j][i]; \
-			board_num[j][i] = board_fields[j][i]; \
-			bIsMove = BOOLEAN_IS_MOVE; \
-}	
-/*M_PAWN_CHECK_HIT*/
+#define M_BLACK_PAWN_CHECK_HIT(ITERATOR, ADDITIONAL_COLS, BOOLEAN_IS_MOVE)\
+		if(STR_COMP((board_marks[j][ITERATOR + ADDITIONAL_COLS], buffr)) == 0 && board_num[j][ITERATOR + ADDITIONAL_COLS] != -1 && board_num[j][ITERATOR + ADDITIONAL_COLS] != 0 && board_num[j][ITERATOR + ADDITIONAL_COLS] != 1)\
+				{ board_num[j][ITERATOR + ADDITIONAL_COLS] = board_num[j][i];\
+				board_num[j][i] = board_fields[j][i];\
+				bIsMove = BOOLEAN_IS_MOVE;\
+				}
 
+#define M_WHITE_PAWN_CHECK_HIT(ITERATOR, ADDITIONAL_COLS, BOOLEAN_IS_MOVE) \
+		if(STR_COMP((board_marks[j][ITERATOR + ADDITIONAL_COLS], buffr)) == 0 && board_num[j][ITERATOR + ADDITIONAL_COLS] != -1 && board_num[j][ITERATOR + ADDITIONAL_COLS] != 0 && board_num[j][ITERATOR + ADDITIONAL_COLS] != 7) \
+				{ board_num[j][ITERATOR + ADDITIONAL_COLS] = board_num[j][i]; \
+				board_num[j][i] = board_fields[j][i]; \
+				bIsMove = BOOLEAN_IS_MOVE; \
+				}\
+/*M_BLACK_PAWN_CHECK_HIT*/
+
+
+//input variable duplicate description other file
+static int stdin_copy = 0;
+static int bIsMove = 0;
+static int nHowMuchFieldMoved = 0;
 
 
 #ifndef _MY_CONTAINER_MAP
@@ -98,9 +109,6 @@ typedef char* UTF_8;
 
 
 
-//input variable duplicate description other file
-static int stdin_copy = 0;
-static int bIsMove = 0;
 
 //Chess fields
 UTF_8 WhiteField = " ■";
@@ -133,18 +141,18 @@ int32_t board_fields[WIDTH][HEIGHT] =  {-1, 0,-1, 0,-1, 0,-1, 0,
                                          0,-1, 0,-1, 0,-1, 0,-1,
                                         -1, 0,-1, 0,-1, 0,-1, 0,
 			                 0,-1, 0,-1, 0,-1, 0, -1
-	                                                        };
+								 };
 
 
-int32_t board_num[WIDTH][HEIGHT] =  {-1, 0,-1, 0,-1, 0,-1, 0,
-           	                      1, 1, 1, 1, 1, 1, 1, 1,
-                    	             -1, 0,-1, 0,-1, 0,-1, 0,
-                            	      0,-1, 0,-1, 0,-1, 0,-1,
-                                     -1, 0,-1, 0,-1, 0,-1, 0,        //with figures 8 x 8
-                                      0,-1, 0,-1, 0,-1, 0,-1,
-                                      7, 7, 7, 7, 7, 7, 7, 7,
-			              0,-1, 0,-1, 0,-1, 0, -1
-    	                                                        };
+int32_t board_num[WIDTH][HEIGHT] = 	{-1, 0,-1, 0,-1, 0,-1, 0,
+           	                          0, 1, 1, 1, 1, 1, 1,-1,
+                    	            	 -1, 0,-1, 0,-1, 0,-1, 0,
+                            	    	  0,-1, 0,-1, 0,-1, 0,-1,
+                                    	 -1, 0,-1, 0,-1, 0,-1, 0,        //with figures 8 x 8
+                                    	  0,-1, 0,-1, 0,-1, 0,-1,
+                                    	  7, 7, 7, 7, 7, 7, 7, 7,
+			            	  0,-1, 0,-1, 0,-1, 0, -1
+								  };
 
 
 const char* board_marks[WIDTH][HEIGHT] =
@@ -158,14 +166,101 @@ const char* board_marks[WIDTH][HEIGHT] =
 			              "A8","B8","C8","D8","E8","F8","G8","H8"
 	                                                   		     };
 
+
+#ifndef _PIECE_PROP
+#define _PIECE_PROP
+
+//Chess Piece Proporties
+typedef struct
+{
+	int _x, _y;
+	int _nFieldNumber;
+	int _nHowMuchFieldMoved;
+	unsigned int _id;
+}sPiece;
+
+void piece_ctor(sPiece * const me, int x, int y, int nFieldNumber, int nHowMuchFieldMoved, unsigned int id)
+{
+	me->_x = x;
+	me->_y = y;
+
+	me->_nFieldNumber = nFieldNumber;
+	board_num[x][y] = me->_nFieldNumber;
+
+	me->_id = id;
+	me->_nHowMuchFieldMoved = nHowMuchFieldMoved;
+}
+
+#endif
+
+
+
 //declare functions
 void drawMap();
 //...
 
 
+//inline functions
+static void inline moveStraightDown(int j, int i, int nRange, int howOften, int who_move, const char* buffr, sPiece * piece)
+{
+
+		for(int it_forward = j; it_forward < nRange; it_forward += howOften)
+		{
+		
+			//only down	
+			if(STR_COMP((board_marks[it_forward][i], buffr)) == 0 && board_num[it_forward][i] == -1)
+			{
+				board_num[it_forward][i] = board_num[j][i];
+				board_num[j][i] = board_fields[j][i];
+
+				bIsMove = who_move;
+			}
+
+			if(STR_COMP((board_marks[it_forward][i], buffr)) == 0 && board_num[it_forward][i] == 0)
+			{
+				board_num[it_forward][i] = board_num[j][i];
+				board_num[j][i] = board_fields[j][i];
+
+				bIsMove = who_move;
+			}
+			
+			//need for calculate how much 'we can move back'
+			if(STR_COMP((board_marks[it_forward][i], buffr)) == 0)
+			{
+				piece->_nHowMuchFieldMoved = it_forward;
+			}
+		}
+}
+
+static void inline moveStraightRight(int j, int i, int nRange, int howOften, int who_move, const char* buffr)
+{
+
+		for(int it_forward = i; it_forward < nRange; it_forward += howOften)
+		{
+
+			//only right				
+			if(STR_COMP((board_marks[j][it_forward], buffr)) == 0 && board_num[j][it_forward] == -1)
+			{
+				board_num[j][it_forward] = board_num[j][i];
+				board_num[j][i] = board_fields[j][i];
+
+				bIsMove = who_move;
+			}
+
+			if(STR_COMP((board_marks[j][it_forward], buffr)) == 0 && board_num[j][it_forward] == 0)
+			{
+				board_num[j][it_forward] = board_num[j][i];
+				board_num[j][i] = board_fields[j][i];
+
+				bIsMove = who_move;
+			}
+
+		}
+}
+
 
 //logic piece func
-void piece_switch(unordered_map * map, char* mark, int j, int i)
+void piece_switch(unordered_map * map, char* mark, int j, int i, sPiece * piece)
 {
 	char buffr[3] = "";	
 
@@ -196,18 +291,18 @@ void piece_switch(unordered_map * map, char* mark, int j, int i)
 					if(STR_COMP((mark, board_marks[1][it_forward - WIDTH])) == 0)
 					{
 						//2 fields forward ++ if didn't start yet	
-						M_PAWN_CHECK_MOVE(it_forward, 8, -1, 0); 
-						M_PAWN_CHECK_MOVE(it_forward, 8, 0, 0); 
+						M_PIECE_CHECK_MOVE(j, 0, it_forward, 8, -1, 0); 
+						M_PIECE_CHECK_MOVE(j, 0, it_forward, 8, 0, 0); 
 					}	
 
 
 					//Pawn move per 1 field
-					M_PAWN_CHECK_MOVE(it_forward, 0, -1, 0);
-					M_PAWN_CHECK_MOVE(it_forward, 0, 0, 0);
+					M_PIECE_CHECK_MOVE(j, 0, it_forward, 0, -1, 0);
+					M_PIECE_CHECK_MOVE(j, 0, it_forward, 0, 0, 0);
 
-					//check hitting
-					M_PAWN_CHECK_HIT(it_forward, -1, 0);
-					M_PAWN_CHECK_HIT(it_forward, 1, 0);
+					//check hitting; link <1,6> teammates number 'off hitting friendly'
+					M_BLACK_PAWN_CHECK_HIT(it_forward, -1, 0)
+					M_BLACK_PAWN_CHECK_HIT(it_forward, 1, 0)
 	
 				}
 
@@ -219,7 +314,10 @@ void piece_switch(unordered_map * map, char* mark, int j, int i)
 		case 7: //White Pawns
 
 		    if(!bIsMove)
-		    {	    
+		    {
+			
+			printf("\n%d\n", nHowMuchFieldMoved);
+
 				for(int it_backward = i - 16; it_backward < i; i -= WIDTH)
 				{
 
@@ -227,18 +325,18 @@ void piece_switch(unordered_map * map, char* mark, int j, int i)
 					if(STR_COMP((mark, board_marks[6][i])) == 0)
 					{
 						//2 fields forward ++ if didn't start yet
-						M_PAWN_CHECK_MOVE(it_backward, 0, -1, 1);
-						M_PAWN_CHECK_MOVE(it_backward, 0, 0, 1);
+						M_PIECE_CHECK_MOVE(j, 0, it_backward, 0, -1, 1);
+						M_PIECE_CHECK_MOVE(j, 0, it_backward, 0, 0, 1);
 					}	
 
 
 					//Per 1 field - These statements checking 'if fields are oposite' not 'across' for pawns
-					M_PAWN_CHECK_MOVE(it_backward, 8, -1, 1);
-					M_PAWN_CHECK_MOVE(it_backward, 8, 0, 1);
+					M_PIECE_CHECK_MOVE(j, 0, it_backward, 8, -1, 1);
+					M_PIECE_CHECK_MOVE(j, 0, it_backward, 8, 0, 1);
 
-					//check hitting	
-					M_PAWN_CHECK_HIT(i, -9, 1);
-					M_PAWN_CHECK_HIT(i, -7, 1);
+					//check hitting; <7,12> 'no teammates hitting' included.	
+					M_WHITE_PAWN_CHECK_HIT(i, -9, 1);
+					M_WHITE_PAWN_CHECK_HIT(i, -7, 1);
 
 				}
 
@@ -247,6 +345,59 @@ void piece_switch(unordered_map * map, char* mark, int j, int i)
 		    
 		break;
 
+
+		//Black Rook
+		case 4:
+		
+		if(bIsMove)
+		{
+			//check how much free place left until end of array (memory)
+			
+			printf("\n%d\n", piece->_nHowMuchFieldMoved);
+
+			moveStraightDown(j, i, 8, 1, 0, buffr, piece);	
+			moveStraightRight(j, i, 8, 1, 0, buffr);
+		}
+
+		if(bIsMove && piece->_nHowMuchFieldMoved > 0)
+		{
+	
+			printf("\nDo przodu: %d\n", piece->_nHowMuchFieldMoved);
+
+			for(int it_backward = j; j - piece->_nHowMuchFieldMoved <= it_backward; it_backward--)
+			{
+				
+				if(STR_COMP((board_marks[it_backward][i], buffr)) == 0 && board_num[it_backward][i] == -1)
+				{
+					board_num[it_backward][i] = board_num[j][i];
+					board_num[j][i] = board_fields[j][i];
+
+					bIsMove = 0;
+				}
+
+				if(STR_COMP((board_marks[it_backward][i], buffr)) == 0 && board_num[it_backward][i] == 0)
+				{
+					board_num[it_backward][i] = board_num[j][i];
+					board_num[j][i] = board_fields[j][i];
+
+					bIsMove = 0;
+				}
+
+				//need for calculate how much 'we can move back'
+				if(STR_COMP((board_marks[it_backward][i], buffr)) == 0)
+				{
+					piece->_nHowMuchFieldMoved = it_backward;
+				}
+
+				printf("\nDo tylu: %d\n", piece->_nHowMuchFieldMoved);
+
+
+			}
+
+			
+		}
+
+		break;
 	
 	}
 
@@ -254,18 +405,24 @@ void piece_switch(unordered_map * map, char* mark, int j, int i)
 
 int main(void)
 {
-   unordered_map umap_chess[WIDTH * HEIGHT];   
+   unordered_map umap_chess[WIDTH * HEIGHT];  
+
+   sPiece* _rook = calloc(4, sizeof(sPiece*));
 
    int rc = 0;
    char buffr_mark[3] = "";
 
    stdin_copy = dup(STDIN_FILENO);
 
+   //init pieces
+   piece_ctor(&_rook[0], 0, 0, 4, 0, 1);
+   piece_ctor(&_rook[1], 0, 7, 4, 0, 2);
+
 label:
 
     //drawing
     drawMap();
-
+	
     //remove garbage from stdin - clean description other file
     tcdrain(stdin_copy);
     tcflush(stdin_copy, TCIFLUSH);
@@ -295,7 +452,7 @@ label:
 				printf("You choosed piece on %s\n", buffr_mark);
 			
 				//piece logical
-				piece_switch(umap_chess, buffr_mark, j, i);
+				piece_switch(umap_chess, buffr_mark, j, i, &_rook[i - 6]);
 				_GAME_STATE_LOOP;
 			    }
 
@@ -311,10 +468,12 @@ label:
 		 
    
 	      //dest unordered_map [marks,nums]
-	      umap_dtor(&umap_chess[j * i]); 
+	      umap_dtor(&umap_chess[j * i]);
 
 	   }
    }
+	//free mem from pieces	
+  	 free(_rook);	 
 
    return 0;
 }
@@ -357,7 +516,7 @@ void drawMap()
 		  break;
 
 		  case 4:
-		      printf("%s", BlackRook);
+		      printf(" %s", BlackRook);
 		  break;
 
 		  case 5:
