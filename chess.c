@@ -51,7 +51,6 @@
 //input variable duplicate description other file
 static int stdin_copy = 0;
 static int bIsMove = 0;
-static int nHowMuchFieldMoved = 0;
 
 
 #ifndef _MY_CONTAINER_MAP
@@ -62,6 +61,7 @@ typedef struct
 { 
     const char * _key;
     int32_t _value; 
+    unsigned int _id;
 
     struct unordered_map *me;
 
@@ -73,7 +73,7 @@ void umap_ctor(unordered_map * _me, const char * key, int32_t value)
 {
      _me->_key = key;
      _me->_value = value;
-    
+
      _me->me  = calloc(1, sizeof * _me);
 }
 
@@ -154,7 +154,6 @@ int32_t board_num[WIDTH][HEIGHT] = 	{-1, 0,-1, 0,-1, 0,-1, 0,
 			            	  0,-1, 0,-1, 0,-1, 0, -1
 								  };
 
-
 const char* board_marks[WIDTH][HEIGHT] =
 				     {"A1","B1","C1","D1","E1","F1","G1","H1",
            	                      "A2","B2","C2","D2","E2","F2","G2","H2",
@@ -166,7 +165,6 @@ const char* board_marks[WIDTH][HEIGHT] =
 			              "A8","B8","C8","D8","E8","F8","G8","H8"
 	                                                   		     };
 
-
 #ifndef _PIECE_PROP
 #define _PIECE_PROP
 
@@ -175,11 +173,11 @@ typedef struct
 {
 	int _x, _y;
 	int _nFieldNumber;
-	int _nHowMuchFieldMoved;
-	unsigned int _id;
+	int _nHowMuchFieldMovedX;
+	int _nHowMuchFieldMovedY;
 }sPiece;
 
-void piece_ctor(sPiece * const me, int x, int y, int nFieldNumber, int nHowMuchFieldMoved, unsigned int id)
+void piece_ctor(sPiece * const me, int x, int y, int nFieldNumber, int nHowMuchFieldMovedX, int nHowMuchFieldMovedY)
 {
 	me->_x = x;
 	me->_y = y;
@@ -187,8 +185,9 @@ void piece_ctor(sPiece * const me, int x, int y, int nFieldNumber, int nHowMuchF
 	me->_nFieldNumber = nFieldNumber;
 	board_num[x][y] = me->_nFieldNumber;
 
-	me->_id = id;
-	me->_nHowMuchFieldMoved = nHowMuchFieldMoved;
+	me->_nHowMuchFieldMovedX = nHowMuchFieldMovedX;
+	me->_nHowMuchFieldMovedY = nHowMuchFieldMovedY;
+	
 }
 
 #endif
@@ -201,6 +200,40 @@ void drawMap();
 
 
 //inline functions
+
+static void inline moveStraightUp(int j, int i, int howOften, int who_move, const char* buffr, sPiece * piece)
+{
+
+		for(int it_backward = j; (j - piece->_nHowMuchFieldMovedY) <= it_backward; it_backward -= howOften)
+		{
+			
+			if(STR_COMP((board_marks[it_backward][i], buffr)) == 0 && board_num[it_backward][i] == -1)
+			{
+				board_num[it_backward][i] = board_num[j][i];
+				board_num[j][i] = board_fields[j][i];
+
+				bIsMove = 0;
+			}
+
+			if(STR_COMP((board_marks[it_backward][i], buffr)) == 0 && board_num[it_backward][i] == 0)
+			{
+				board_num[it_backward][i] = board_num[j][i];
+				board_num[j][i] = board_fields[j][i];
+
+				bIsMove = 0;
+			}
+
+			//need for calculate how much 'we can move back'
+			if(STR_COMP((board_marks[it_backward][i], buffr)) == 0)
+			{
+				piece->_nHowMuchFieldMovedY = it_backward;
+			}
+
+
+		}
+
+}
+
 static void inline moveStraightDown(int j, int i, int nRange, int howOften, int who_move, const char* buffr, sPiece * piece)
 {
 
@@ -227,12 +260,16 @@ static void inline moveStraightDown(int j, int i, int nRange, int howOften, int 
 			//need for calculate how much 'we can move back'
 			if(STR_COMP((board_marks[it_forward][i], buffr)) == 0)
 			{
-				piece->_nHowMuchFieldMoved = it_forward;
+				piece->_nHowMuchFieldMovedY = it_forward;
 			}
+
+
 		}
+
+
 }
 
-static void inline moveStraightRight(int j, int i, int nRange, int howOften, int who_move, const char* buffr)
+static void inline moveStraightRight(int j, int i, int nRange, int howOften, int who_move, const char* buffr, sPiece * piece)
 {
 
 		for(int it_forward = i; it_forward < nRange; it_forward += howOften)
@@ -255,15 +292,55 @@ static void inline moveStraightRight(int j, int i, int nRange, int howOften, int
 				bIsMove = who_move;
 			}
 
+			//need for calculate how much 'we can move back'
+			if(STR_COMP((board_marks[j][it_forward], buffr)) == 0)
+			{
+				piece->_nHowMuchFieldMovedX = it_forward;
+			}
+
 		}
+
+
 }
 
 
-//logic piece func
-void piece_switch(unordered_map * map, char* mark, int j, int i, sPiece * piece)
+static void inline moveStraightLeft(int j, int i, int howOften, int who_move, const char* buffr, sPiece * piece)
 {
-	char buffr[3] = "";	
 
+		for(int it_backward = i; (i - piece->_nHowMuchFieldMovedX) <= it_backward; it_backward -= howOften)
+		{
+
+			//only right				
+			if(STR_COMP((board_marks[j][it_backward], buffr)) == 0 && board_num[j][it_backward] == -1)
+			{
+				board_num[j][it_backward] = board_num[j][i];
+				board_num[j][i] = board_fields[j][i];
+
+				bIsMove = who_move;
+			}
+
+			if(STR_COMP((board_marks[j][it_backward], buffr)) == 0 && board_num[j][it_backward] == 0)
+			{
+				board_num[j][it_backward] = board_num[j][i];
+				board_num[j][i] = board_fields[j][i];
+
+				bIsMove = who_move;
+			}
+
+			//need for calculate how much 'we can move back'
+			if(STR_COMP((board_marks[j][it_backward], buffr)) == 0)
+			{
+				piece->_nHowMuchFieldMovedX = it_backward;
+			}
+
+		}
+
+
+}
+
+static void inline clearInput()
+{
+	
 	//duplicate file's description
 	stdin_copy = dup(STDIN_FILENO);
 	tcdrain(stdin_copy);
@@ -271,10 +348,11 @@ void piece_switch(unordered_map * map, char* mark, int j, int i, sPiece * piece)
 
 	close(stdin_copy);
 
-	drawMap();
-	printf("What's field you move to?: ");
-	gets(buffr, sizeof(buffr), stdin_copy);
+}
 
+//logic piece func
+void pawn_switch(unordered_map * map, char* mark, int j, int i, const char* buffr)
+{
 
 	switch(map[j * i]._value)
 	{
@@ -316,8 +394,6 @@ void piece_switch(unordered_map * map, char* mark, int j, int i, sPiece * piece)
 		    if(!bIsMove)
 		    {
 			
-			printf("\n%d\n", nHowMuchFieldMoved);
-
 				for(int it_backward = i - 16; it_backward < i; i -= WIDTH)
 				{
 
@@ -345,78 +421,58 @@ void piece_switch(unordered_map * map, char* mark, int j, int i, sPiece * piece)
 		    
 		break;
 
-
-		//Black Rook
-		case 4:
-		
-		if(bIsMove)
-		{
-			//check how much free place left until end of array (memory)
-			
-			printf("\n%d\n", piece->_nHowMuchFieldMoved);
-
-			moveStraightDown(j, i, 8, 1, 0, buffr, piece);	
-			moveStraightRight(j, i, 8, 1, 0, buffr);
-		}
-
-		if(bIsMove && piece->_nHowMuchFieldMoved > 0)
-		{
-	
-			printf("\nDo przodu: %d\n", piece->_nHowMuchFieldMoved);
-
-			for(int it_backward = j; j - piece->_nHowMuchFieldMoved <= it_backward; it_backward--)
-			{
-				
-				if(STR_COMP((board_marks[it_backward][i], buffr)) == 0 && board_num[it_backward][i] == -1)
-				{
-					board_num[it_backward][i] = board_num[j][i];
-					board_num[j][i] = board_fields[j][i];
-
-					bIsMove = 0;
-				}
-
-				if(STR_COMP((board_marks[it_backward][i], buffr)) == 0 && board_num[it_backward][i] == 0)
-				{
-					board_num[it_backward][i] = board_num[j][i];
-					board_num[j][i] = board_fields[j][i];
-
-					bIsMove = 0;
-				}
-
-				//need for calculate how much 'we can move back'
-				if(STR_COMP((board_marks[it_backward][i], buffr)) == 0)
-				{
-					piece->_nHowMuchFieldMoved = it_backward;
-				}
-
-				printf("\nDo tylu: %d\n", piece->_nHowMuchFieldMoved);
-
-
-			}
-
-			
-		}
-
-		break;
-	
 	}
 
 }
+
+
+void rook_switch(unordered_map * map, char* mark, int j, int i, const char* buffr, sPiece * piece)
+{
+		//Rook movement and hitting rules	
+		if(bIsMove)
+		{	
+			moveStraightDown(j, i, 8, 1, 0, buffr, piece);	
+			moveStraightRight(j, i, 8, 1, 0, buffr, piece);
+		
+
+			printf("\nLiczba pol X: %d\n", piece->_nHowMuchFieldMovedX);
+			printf("Liczba pol Y: %d\n", piece->_nHowMuchFieldMovedY);
+		}
+
+		if(bIsMove && piece->_nHowMuchFieldMovedY > 0)
+		{
+			//check how much free place left until end of array (memory)
+
+			moveStraightUp(j, i, 1, 0, buffr, piece);
+
+		}
+
+		
+		if(bIsMove && piece->_nHowMuchFieldMovedX > 0)
+		{	
+			//check how much free place left until end of array (memory)
+
+			moveStraightLeft(j, i, 1, 0, buffr, piece);
+
+		}
+
+	
+}	
 
 int main(void)
 {
    unordered_map umap_chess[WIDTH * HEIGHT];  
 
-   sPiece* _rook = calloc(4, sizeof(sPiece*));
+   //allocate mem for struct black and white rooks.
+   sPiece* _rook = calloc(4, sizeof(sPiece));
 
    int rc = 0;
    char buffr_mark[3] = "";
+   char buffr_field[3] = "";	
 
-   stdin_copy = dup(STDIN_FILENO);
-
-   //init pieces
-   piece_ctor(&_rook[0], 0, 0, 4, 0, 1);
-   piece_ctor(&_rook[1], 0, 7, 4, 0, 2);
+   //init pieces         j  i  f  x  y 
+   piece_ctor(&_rook[0], 0, 0, 4, 0, 0);
+   piece_ctor(&_rook[1], 0, 7, 5, 7, 0);
 
 label:
 
@@ -424,9 +480,7 @@ label:
     drawMap();
 	
     //remove garbage from stdin - clean description other file
-    tcdrain(stdin_copy);
-    tcflush(stdin_copy, TCIFLUSH);
-    close(stdin_copy); 
+    clearInput();
 
    printf("\nChoose a piece by typing field's mark: ");
    gets(buffr_mark, sizeof(buffr_mark), stdin_copy); //for ints no files invalid in C99
@@ -441,8 +495,6 @@ label:
 
 		//compare user stdin with board_marks strings
    	       	  rc = STR_COMP((umap_chess[j * i]._key, buffr_mark));
-
-
 		
 		 if(!rc)
 		 {	     
@@ -450,9 +502,30 @@ label:
 			    {
 
 				printf("You choosed piece on %s\n", buffr_mark);
-			
-				//piece logical
-				piece_switch(umap_chess, buffr_mark, j, i, &_rook[i - 6]);
+		
+				//field move process
+				clearInput();
+				drawMap();
+
+				printf("What's field you move to?: ");
+				gets(buffr_field, sizeof(buffr_field), stdin_copy);
+
+				//pawn logic
+				pawn_switch(umap_chess, buffr_mark, j, i, buffr_field);
+
+				//all rest piece logic
+
+				if(umap_chess[j * i]._value == 4)
+				{	
+					rook_switch(umap_chess, buffr_mark, j, i, buffr_field, &_rook[0]);
+				}
+
+				if(umap_chess[j * i]._value == 5)
+				{	
+					rook_switch(umap_chess, buffr_mark, j, i, buffr_field, &_rook[1]);
+				}
+				
+
 				_GAME_STATE_LOOP;
 			    }
 
@@ -493,6 +566,7 @@ void drawMap()
     {
          for(int32_t col = 0; col < HEIGHT; col++)
 	 {
+		 
 	      switch(board_num[rows][col])
 	      {
 		  case -1: //WHITE
@@ -514,11 +588,16 @@ void drawMap()
 		  case 3:
 		      printf("%s", BlackBishop);
 		  break;
-
+		   
 		  case 4:
 		      printf(" %s", BlackRook);
 		  break;
+		
+		  case 5:
+		      printf(" %s", BlackRook);
+		  break;
 
+		  /*
 		  case 5:
 		      printf("%s", BlackQueen);
 		  break;
@@ -526,11 +605,13 @@ void drawMap()
 		  case 6:
 		      printf("%s", BlackKing);
 		  break;
+		 */
 
 		  case 7:
 		      printf("%s", WhitePawn);
 		  break;
 		
+		  /*
 		  case 8:
 		      printf("%s", WhiteHorse);
 		  break;
@@ -550,13 +631,17 @@ void drawMap()
 		  case 12:
 		      printf("%s", WhiteKing);
 		  break;
+		  */
 
+/*		  
 		  default:
 		      printf("Not Found a piece!\n");
 		  break;
+*/		  
 
 	      }
-		
+
+
 	 }
 	 printf(" %d",num_rows++);
 	 printf("\n");
