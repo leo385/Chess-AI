@@ -119,8 +119,8 @@ UTF_8 BlackField = " □";
 UTF_8 WhitePawn = " ♟"; 
 UTF_8 BlackPawn = " 🨸";
 
-UTF_8 WhiteHorse = "♞";
-UTF_8 BlackHorse = "♘";
+UTF_8 WhiteKnight = "♞";
+UTF_8 BlackKnight = "♘";
 
 UTF_8 WhiteBishop = "♝";
 UTF_8 BlackBishop = "♗";
@@ -146,7 +146,7 @@ int32_t board_fields[WIDTH][HEIGHT] =  {-1, 0,-1, 0,-1, 0,-1, 0,
 
 
 int32_t board_num[WIDTH][HEIGHT] = 	{-1, 0,-1, 0,-1, 0,-1, 0,
-           	                          0, 1, 1, 1, 1, 1, 1,-1,
+           	                          0,-1, 1, 1, 1, 1, 0,-1,
                     	            	 -1, 0,-1, 0,-1, 0,-1, 0,
                             	    	  0,-1, 0,-1, 0,-1, 0,-1,
                                     	 -1, 0,-1, 0,-1, 0,-1, 0,        //with figures 8 x 8
@@ -196,6 +196,7 @@ void piece_ctor(sPiece * const me, int x, int y, int nFieldNumber, int nHowMuchF
 
 
 //declare functions
+void chess_piece(unordered_map * map, int j, int i, int range, const char* f_buffr, sPiece * piece);
 void drawMap();
 //...
 
@@ -274,6 +275,7 @@ void pawn_switch(unordered_map * map, char* mark, int j, int i, const char* buff
 	}
 
 }
+
 
 //inline update functions
 static void inline moveStraightUp(int j, int i, int howOften, int who_move, const char* buffr, sPiece * piece)
@@ -499,15 +501,14 @@ static void inline clearInput()
 
 }
 
-
-
-void black_update(unordered_map * map, char* mark, int j, int i, const char* buffr, sPiece * piece)
+//These updates are for <"Rooks" , ,....>
+void black_update(unordered_map * map, int j, int i, int range, const char* buffr, sPiece * piece)
 {
 		//Rook movement and hitting rules	
 		if(bIsMove)
 		{	
-			moveStraightDown(j, i, 8, 1, 0, buffr, piece);	
-			moveStraightRight(j, i, 8, 1, 0, buffr, piece);
+			moveStraightDown(j, i, range, 1, 0, buffr, piece);	
+			moveStraightRight(j, i, range, 1, 0, buffr, piece);
 			
 
 			//printf("\nLiczba pol X: %d\n", piece->_nHowMuchFieldMovedX);
@@ -533,13 +534,13 @@ void black_update(unordered_map * map, char* mark, int j, int i, const char* buf
 }
 
 
-void white_update(unordered_map * map, char* mark, int j, int i, const char* buffr, sPiece * piece)
+void white_update(unordered_map * map, int j, int i, int range, const char* buffr, sPiece * piece)
 {
 		//Rook movement and hitting rules	
 		if(!bIsMove)
 		{	
-			moveStraightDown(j, i, 8, 1, 1, buffr, piece);	
-			moveStraightRight(j, i, 8, 1, 1, buffr, piece);
+			moveStraightDown(j, i, range, 1, 1, buffr, piece);	
+			moveStraightRight(j, i, range, 1, 1, buffr, piece);
 			
 
 			//printf("\nLiczba pol X: %d\n", piece->_nHowMuchFieldMovedX);
@@ -564,12 +565,112 @@ void white_update(unordered_map * map, char* mark, int j, int i, const char* buf
 
 }
 
+
+static void inline knight_jump_down(int j, int i, int who_move, const char* buffr, sPiece * piece)
+{	
+	for(int it_forward = j; it_forward < 3; it_forward += 2)
+	{	
+		//3 x down - 1 x left	
+		if(STR_COMP((board_marks[it_forward][i - 1], buffr)) == 0)
+		{
+
+			board_num[it_forward][i - 1] = board_num[j][i];
+			board_num[j][i] = board_fields[j][i];
+
+			bIsMove = who_move;
+
+			piece->_nHowMuchFieldMovedX = i - 1;
+			piece->_nHowMuchFieldMovedY = it_forward;
+		}
+
+		//3 x down + 1 x right	
+		if(STR_COMP((board_marks[it_forward][i + 1], buffr)) == 0)
+		{
+
+			board_num[it_forward][i + 1] = board_num[j][i];
+			board_num[j][i] = board_fields[j][i];
+
+			bIsMove = who_move;
+
+			piece->_nHowMuchFieldMovedX = i + 1;
+			piece->_nHowMuchFieldMovedY = it_forward;
+		}
+
+	}
+}
+
+
+static void inline knight_jump_right(int j, int i, int who_move, const char* buffr, sPiece * piece)
+{	
+	for(int it_forward = i; it_forward <= 3; it_forward += 1)
+	{	
+		//3 x right - 1 x up	
+		if(STR_COMP((board_marks[j - 1][it_forward], buffr)) == 0)
+		{
+
+			board_num[j - 1][it_forward] = board_num[j][i];
+			board_num[j][i] = board_fields[j][i];
+
+			bIsMove = who_move;
+
+			piece->_nHowMuchFieldMovedX = it_forward;
+			piece->_nHowMuchFieldMovedY = j - 1;
+
+		}
+
+		//3 x down + 1 x right	
+		if(STR_COMP((board_marks[j + 1][it_forward], buffr)) == 0)
+		{
+
+			board_num[j + 1][it_forward] = board_num[j][i];
+			board_num[j][i] = board_fields[j][i];
+
+			bIsMove = who_move;
+
+			piece->_nHowMuchFieldMovedX = it_forward;
+			piece->_nHowMuchFieldMovedY = j + 1;
+		}
+
+	}
+}
+
+
+void b_knight_update(unordered_map * map, int j, int i, int range, const char* buffr, sPiece * piece)
+{
+
+		//Knight movement and hitting rules	
+		if(bIsMove)
+		{
+			knight_jump_down(j, i, 0, buffr, piece);
+			knight_jump_right(j, i, 0, buffr, piece);
+		}
+
+		if(bIsMove && piece->_nHowMuchFieldMovedY > 0)
+		{
+			//check how much free place left until end of array (memory)
+			//moveStraightUp(j, i, 1, 1, buffr, piece);
+			
+		}
+
+		
+		if(bIsMove && piece->_nHowMuchFieldMovedX > 0)
+		{	
+			//check how much free place left until end of array (memory)
+			//moveStraightLeft(j, i, 1, 1, buffr, piece);
+
+
+		}
+
+}
+
+
 int main(void)
 {
    unordered_map umap_chess[WIDTH * HEIGHT];  
 
    //allocate mem for struct black and white rooks.
    sPiece* _rook = calloc(4, sizeof(sPiece));
+   sPiece* _knight = calloc(4, sizeof(sPiece));
 
    int rc = 0;
    char buffr_mark[3] = "";
@@ -584,6 +685,10 @@ int main(void)
    //White Rooks 
    piece_ctor(&_rook[2], 7, 0, 6, 0, 7);
    piece_ctor(&_rook[3], 7, 7, 8, 7, 7);
+
+   //Black Knight
+   piece_ctor(&_knight[0], 0, 1, 2, 1, 0);
+   piece_ctor(&_knight[1], 0, 6, 3, 6, 0); 
 
 label:
 	
@@ -624,32 +729,29 @@ label:
 				printf("What's field you move to?: ");
 				gets(buffr_field, sizeof(buffr_field), stdin_copy);
 
-				//pawn update
-				pawn_switch(umap_chess, buffr_mark, j, i, buffr_field);
-
-				//BlackRook update
-				if(umap_chess[j * i]._value == 4)
-				{	
-					black_update(umap_chess, buffr_mark, j, i, buffr_field, &_rook[0]);
+				//pawns both update
+				{
+				 	pawn_switch(umap_chess, buffr_mark, j, i, buffr_field);
 				}
 
-				if(umap_chess[j * i]._value == 5)
+				//BlackRook update
 				{	
-					black_update(umap_chess, buffr_mark, j, i, buffr_field, &_rook[1]);
+					chess_piece(umap_chess, j, i, 8, buffr_field, &_rook[0]);	
+					chess_piece(umap_chess, j, i, 8, buffr_field, &_rook[1]);
 				}
 				
 							
 				//WhiteRook update	
-				if(umap_chess[j * i]._value == 6)
 				{	
-					white_update(umap_chess, buffr_mark, j, i, buffr_field, &_rook[2]);
+					chess_piece(umap_chess, j, i, 8, buffr_field, &_rook[2]);
+					chess_piece(umap_chess, j, i, 8, buffr_field, &_rook[3]);
 				}
-
-				if(umap_chess[j * i]._value == 8)
-				{	
-					white_update(umap_chess, buffr_mark, j, i, buffr_field, &_rook[3]);
+				
+				//BlackKnight update
+				{ 
+					chess_piece(umap_chess, j, i, 3, buffr_field, &_knight[0]);
+					chess_piece(umap_chess, j, i, 3, buffr_field, &_knight[1]);
 				}
-
 
 				_GAME_STATE_LOOP;
 			    }
@@ -672,8 +774,45 @@ label:
    }
 	//free mem from pieces	
   	 free(_rook);	 
+	 free(_knight);
 
-   return 0;
+   return EXIT_SUCCESS;
+}
+
+//chess piece update here
+void chess_piece(unordered_map * map, int j, int i, int range, const char* f_buffr, sPiece * piece)
+{
+	switch(map[j * i]._value)
+	{
+		//black rooks update
+		case 4:
+			black_update(map, j, i, range, f_buffr, piece);
+		break;
+
+		case 5:
+			black_update(map, j, i, range, f_buffr, piece);
+		break;
+		//////////////////////
+		
+		//white rooks update
+		case 6:
+			white_update(map, j, i, range, f_buffr, piece);
+	 	break;
+		
+		case 8: 
+			white_update(map, j, i, range, f_buffr, piece);
+		break;
+		/////////////////////
+		
+		//black knights update
+		case 2:	
+			b_knight_update(map, j, i, range, f_buffr, piece);
+		break;
+
+		case 3:	
+			b_knight_update(map, j, i, range, f_buffr, piece);
+		break;
+	}
 }
 
 void drawMap()
@@ -717,15 +856,18 @@ void drawMap()
 		  ///////////////////////////////
 
 
-		  /*
+		  //Knights
+		  //Top-Left BlackKnight
 		  case 2:
-		      printf("%s", BlackHorse);
+		      printf(" %s", BlackKnight);
 		  break;
 
+		  //Top-Right BlackKnight
 		  case 3:
-		      printf("%s", BlackBishop);
+		      printf(" %s", BlackKnight);
 		  break;
-		  */
+		  //////////////////////////////
+
 
 		  //Rooks
 		  //Top-Left BlackRook 
