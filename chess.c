@@ -510,7 +510,7 @@ static void inline clearInput()
 
 }
 
-void black_update(unordered_map * map, int j, int i, int range, const char* buffr, sPiece * piece)
+void rook_black_update(unordered_map * map, int j, int i, int range, const char* buffr, sPiece * piece)
 {
 		//Rook movement and hitting rules	
 		if(bIsMove)
@@ -542,7 +542,7 @@ void black_update(unordered_map * map, int j, int i, int range, const char* buff
 }
 
 
-void white_update(unordered_map * map, int j, int i, int range, const char* buffr, sPiece * piece)
+void rook_white_update(unordered_map * map, int j, int i, int range, const char* buffr, sPiece * piece)
 {
 		//Rook movement and hitting rules	
 		if(!bIsMove)
@@ -716,131 +716,6 @@ static void inline f_knight_move(int j, int i, int y, int x, int who_move, const
 }
 
 
-void black_knight_movement(int j, int i, const char* buffr, sPiece * piece)
-{
-
-			if(bIsMove)
-			{
-				//up-down	
-				if(piece->_nHowMuchFieldMovedY >= 0 && 
-						piece->_nHowMuchFieldMovedX >= 0)
-				{
-					f_knight_move(j, i, 2, 1, 0, buffr, piece);
-				}
-				
-
-				if(piece->_nHowMuchFieldMovedY >= 0 &&
-						piece->_nHowMuchFieldMovedX > 0)
-				{
-					f_knight_move(j, i, 2, -1, 0, buffr, piece);
-				}
-				
-					
-				if(piece->_nHowMuchFieldMovedY > 1 &&
-						piece->_nHowMuchFieldMovedX >= 0)
-				{
-					f_knight_move(j, i, -2, 1, 0, buffr, piece);
-				}
-				
-				
-				if(piece->_nHowMuchFieldMovedY > 1 &&
-						piece->_nHowMuchFieldMovedX > 0)
-				{
-					f_knight_move(j, i, -2, -1, 0, buffr, piece);
-				}
-				/////////////////up-down/////////////////////////////////
-				
-				//right-left
-				
-				if(piece->_nHowMuchFieldMovedX >= 1)
-				{
-					f_knight_move(j, i, 1, 2, 0, buffr, piece);
-				}
-				
-
-				if(piece->_nHowMuchFieldMovedX >= 1)
-				{
-					f_knight_move(j, i, -1, 2, 0, buffr, piece);
-				}
-				
-					
-				if(piece->_nHowMuchFieldMovedX >= 1)
-				{
-					f_knight_move(j, i, 1, -2, 0, buffr, piece);
-				}
-				
-				
-				if(piece->_nHowMuchFieldMovedX >= 1)
-				{
-					f_knight_move(j, i, -1, -2, 0, buffr, piece);
-				}
-
-
-				printf("\nfield x: %d\n", piece->_nHowMuchFieldMovedX);
-				printf("\nfield y: %d\n", piece->_nHowMuchFieldMovedY);
-
-			}	
-}
-
-void white_knight_movement(int j, int i, const char* buffr, sPiece * piece)
-{
-
-			if(!bIsMove)
-			{
-			    
-			    //up-down
-	                    if(piece->_nHowMuchFieldMovedY <= 0 && piece->_nHowMuchFieldMovedX > 0)
-		    	    {		    
-				f_knight_move(j, i, -2, 1, 1, buffr, piece);
-			    }
-				
-			    if(piece->_nHowMuchFieldMovedY <= 0 && piece->_nHowMuchFieldMovedX > 0)
-		            {
-				f_knight_move(j, i, -2, -1, 1, buffr, piece);
-  			    }
-			 
-
-			    if(piece->_nHowMuchFieldMovedY >= 6 && piece->_nHowMuchFieldMovedX > 0)
-			    {
-				f_knight_move(j, i, 2, -1, 1, buffr, piece);
-			    }
-				
-			    if(piece->_nHowMuchFieldMovedY >= 6 && piece->_nHowMuchFieldMovedX > 0)
-			    {
-				f_knight_move(j, i, 2, 1, 1, buffr, piece);
-			    }
-			    ////////////////////up-down//////////////////////////////////////////////
-			    
-			    //right-left
-
-	                    if(piece->_nHowMuchFieldMovedX > 1)
-		    	    {		    
-				f_knight_move(j, i, 1, -2, 1, buffr, piece);
-			    }
-				
-			    if(piece->_nHowMuchFieldMovedX > 1)
-		            {
-				f_knight_move(j, i, -1, -2, 1, buffr, piece);
-  			    }
-			 
-
-			    if(piece->_nHowMuchFieldMovedX > 2)
-			    {
-				f_knight_move(j, i, -1, 2, 1, buffr, piece);
-			    }
-				
-			    if(piece->_nHowMuchFieldMovedX > 2)
-			    {
-				f_knight_move(j, i, 1, 2, 1, buffr, piece);
-			    }
-
-
-				printf("\nfield x: %d\n", piece->_nHowMuchFieldMovedX);
-				printf("\nfield y: %d\n", piece->_nHowMuchFieldMovedY);
-
-			}	
-}
-
 //chess piece update here
 void chess_piece(unordered_map * map, int j, int i, int range, const char* f_buffr, sPiece * piece)
 {
@@ -848,96 +723,137 @@ void chess_piece(unordered_map * map, int j, int i, int range, const char* f_buf
 	{
 		//black rooks update
 		case 4:
-			black_update(map, j, i, range, f_buffr, piece);
+			rook_black_update(map, j, i, range, f_buffr, piece);
 		break;
 
 		case 5:
-			black_update(map, j, i, range, f_buffr, piece);
+			rook_black_update(map, j, i, range, f_buffr, piece);
 		break;
 		//////////////////////
 		
 		//white rooks update
 		case 6:
-			white_update(map, j, i, range, f_buffr, piece);
+			rook_white_update(map, j, i, range, f_buffr, piece);
 	 	break;
 		
 		case 8: 
-			white_update(map, j, i, range, f_buffr, piece);
+			rook_white_update(map, j, i, range, f_buffr, piece);
 		break;
 		/////////////////////
 		
-		//black knights update
-		
+		//black knights update	
 		case 2:
-			black_knight_movement(j, i, f_buffr,  piece);
+		  if(bIsMove)
+		  {
+			  for(int x = i; x < i + 17; x+=15)
+			  {
+					  //down-left
+					  if(STR_COMP((board_marks[j][x], f_buffr)) == 0)
+					  {
+							  /* printf("\nIt is the field!\n"); */
+							 board_num[j][x] = board_num[j][i];
+							 board_num[j][i] = board_fields[j][i];
+
+							 bIsMove = 0;
+
+							 piece->_nHowMuchFieldMovedX = x;
+					  }
+	
+					  //down-right
+					  if(STR_COMP((board_marks[j][x + 2], f_buffr)) == 0)
+					  {
+							  /* printf("\nIt is the field!\n"); */
+							 board_num[j][x + 2] = board_num[j][i];
+							 board_num[j][i] = board_fields[j][i];
+
+							 bIsMove = 0;
+							 piece->_nHowMuchFieldMovedX = x;
+					  }
+
+					  //right-down 
+					  if(STR_COMP((board_marks[j][x - 5], f_buffr)) == 0)
+					  {
+							  /* printf("\nIt is the field!\n"); */
+							 board_num[j][x - 5] = board_num[j][i];
+							 board_num[j][i] = board_fields[j][i];
+
+							 bIsMove = 0;
+							 piece->_nHowMuchFieldMovedX = x;
+					  }
+
+					  //left-down
+					  if(STR_COMP((board_marks[j][x - 9], f_buffr)) == 0)
+					  {
+							 board_num[j][x - 9] = board_num[j][i];
+							 board_num[j][i] = board_fields[j][i];
+
+							 bIsMove = 0;
+							 piece->_nHowMuchFieldMovedX = x;
+					  }
+
+			  }
+
+			  if(piece->_nHowMuchFieldMovedX >= 15)
+			   {
+				  for(int x = i; i - 17 <= x; x-=17)
+				  {
+					  //top-right
+					   if(STR_COMP((board_marks[j][x], f_buffr)) == 0)
+					   {
+								  board_num[j][x] = board_num[j][i];
+								  board_num[j][i] = board_fields[j][i];
+								  bIsMove = 0;
+					   }
+
+					   if(STR_COMP((board_marks[j][x + 2], f_buffr)) == 0)
+					   {
+								  board_num[j][x + 2] = board_num[j][i];
+								  board_num[j][i] = board_fields[j][i];
+								  bIsMove = 0;
+					   }
+				  }
+
+			   }
+	
+		  }
+
 		break;
 		
 		case 3:	
-			black_knight_movement(j, i, f_buffr,  piece);
+
 		break;
 		/////////////////////
 
 		//white knights update
 		case 9:
-			white_knight_movement(j, i, f_buffr, piece);
+			if(!bIsMove)
+			{
+				  //upside loop
+					  for(int x = i; i - 17 <= x; x-=17)
+					  {
+						  //top-right
+						   if(STR_COMP((board_marks[j][x], f_buffr)) == 0)
+						   {
+									  board_num[j][x] = board_num[j][i];
+									  board_num[j][i] = board_fields[j][i];
+									  bIsMove = 1;
+						   }
+
+						   if(STR_COMP((board_marks[j][x + 2], f_buffr)) == 0)
+						   {
+									  board_num[j][x + 2] = board_num[j][i];
+									  board_num[j][i] = board_fields[j][i];
+									  bIsMove = 1;
+						   }
+					  }
+
+
+			}
+
 		break;
 
 		case 10:
 				
-			if(!bIsMove)
-			{
-			    
-			    //up-down
-	                    if(piece->_nHowMuchFieldMovedY <= 0 && piece->_nHowMuchFieldMovedX > 0)
-		    	    {		    
-				f_knight_move(j, i, -2, 1, 1, f_buffr, piece);
-			    }
-				
-			    if(piece->_nHowMuchFieldMovedY <= 0 && piece->_nHowMuchFieldMovedX > 0)
-		            {
-				f_knight_move(j, i, -2, -1, 1, f_buffr, piece);
-  			    }
-			 
-
-			    if(piece->_nHowMuchFieldMovedY >= 6 && piece->_nHowMuchFieldMovedX > 0)
-			    {
-				f_knight_move(j, i, 2, -1, 1, f_buffr, piece);
-			    }
-				
-			    if(piece->_nHowMuchFieldMovedY >= 6 && piece->_nHowMuchFieldMovedX > 0)
-			    {
-				f_knight_move(j, i, 2, 1, 1, f_buffr, piece);
-			    }
-			    ////////////////////up-down//////////////////////////////////////////////
-			    
-			    //right-left
-				
-	                    if(piece->_nHowMuchFieldMovedX <= 1)
-		    	    {		    
-				f_knight_move(j, i, 1, -2, 1, f_buffr, piece);
-			    }
-			
-		     
-			    if(piece->_nHowMuchFieldMovedX <= 1)
-		            {
-				f_knight_move(j, i, -1, -2, 1, f_buffr, piece);
-  			    }
-			 
- 
-			    if(piece->_nHowMuchFieldMovedX <= 1)
-			    {
-				f_knight_move(j, i, -1, 2, 1, f_buffr, piece);
-			    }
-				
-			    if(piece->_nHowMuchFieldMovedX <= 1)
-			    {
-				f_knight_move(j, i, 1, 2, 1, f_buffr, piece);
-			    }
-
-				printf("\nfield x: %d\n", piece->_nHowMuchFieldMovedX);
-				printf("\nfield y: %d\n", piece->_nHowMuchFieldMovedY);
-
-			}	
 		break;
 		/////////////////////
 	}
