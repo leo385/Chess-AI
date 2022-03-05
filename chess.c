@@ -69,7 +69,6 @@ typedef struct
 }unordered_map;
 
 
-
 void umap_ctor(unordered_map * _me, const char * key, int32_t value)
 {
      _me->_key = key;
@@ -135,36 +134,36 @@ UTF_8 WhiteKing = "♚";
 UTF_8 BlackKing = "♔";
 
 int32_t board_fields[WIDTH][HEIGHT] =  {-1, 0,-1, 0,-1, 0,-1, 0,
-           	                         0,-1, 0,-1, 0,-1, 0,-1,
+										 0,-1, 0,-1, 0,-1, 0,-1,
                     	                -1, 0,-1, 0,-1, 0,-1, 0,
                             	         0,-1, 0,-1, 0,-1, 0,-1,
                                         -1, 0,-1, 0,-1, 0,-1, 0,        //empty fields 8 x 8
                                          0,-1, 0,-1, 0,-1, 0,-1,
                                         -1, 0,-1, 0,-1, 0,-1, 0,
-			                 0,-1, 0,-1, 0,-1, 0, -1
-					   			 };
+										 0,-1, 0,-1, 0,-1, 0, -1
+																};
 
 
 int32_t board_num[WIDTH][HEIGHT] = 	{-1, 0,-1, 0,-1, 0,-1, 0,
            	                          1, 1, 1, 1, 1, 1, 1, 1,
-                    	            	 -1, 0,-1, 0,-1, 0,-1, 0,
-                            	    	  0,-1, 0,-1, 0,-1, 0,-1,
-                                    	 -1, 0,-1, 0,-1, 0,-1, 0,        //with figures 8 x 8
-                                    	  0,-1, 0,-1, 0,-1, 0,-1,
-                                    	  7, 7, 7, 7, 7, 7, 7, 7,
-			            	  0,-1, 0,-1, 0,-1, 0, -1
-								  };
+									 -1, 0,-1, 0,-1, 0,-1, 0,
+									  0,-1, 0,-1, 0,-1, 0,-1,
+									 -1, 0,-1, 0,-1, 0,-1, 0,        //with figures 8 x 8
+									  0,-1, 0,-1, 0,-1, 0,-1,
+									  7, 7, 7, 7, 7, 7, 7, 7,
+									  0,-1, 0,-1, 0,-1, 0, -1
+															  };
 
 const char* board_marks[WIDTH][HEIGHT] =
-				     {"A1","B1","C1","D1","E1","F1","G1","H1",
-           	                      "A2","B2","C2","D2","E2","F2","G2","H2",
-                    	              "A3","B3","C3","D3","E3","F3","G3","H3",
-                            	      "A4","B4","C4","D4","E4","F4","G4","H4",  
-                                      "A5","B5","C5","D5","E5","F5","G5","H5",     // 8 x 8
-                                      "A6","B6","C6","D6","E6","F6","G6","H6",
-                                      "A7","B7","C7","D7","E7","F7","G7","H7",
-			              "A8","B8","C8","D8","E8","F8","G8","H8"
-	                                                   		     };
+										 {"A1","B1","C1","D1","E1","F1","G1","H1",
+										  "A2","B2","C2","D2","E2","F2","G2","H2",
+										  "A3","B3","C3","D3","E3","F3","G3","H3",
+										  "A4","B4","C4","D4","E4","F4","G4","H4",  
+										  "A5","B5","C5","D5","E5","F5","G5","H5",     // 8 x 8
+										  "A6","B6","C6","D6","E6","F6","G6","H6",
+										  "A7","B7","C7","D7","E7","F7","G7","H7",
+										  "A8","B8","C8","D8","E8","F8","G8","H8"
+																				 };
 
 #ifndef _PIECE_PROP
 #define _PIECE_PROP
@@ -194,13 +193,7 @@ void piece_ctor(sPiece * const me, int x, int y, int nFieldNumber, int nHowMuchF
 #endif
 
 //simple movement inline pattern function for knights
-static void inline f_knight_move(int j, int i, int y, int x, int who_move, const char* buffr, sPiece * piece);
-
-//black knight move mechanic
-void black_knight_movement(int j, int i, const char* buffr, sPiece * piece);
-
-//white knight move mechanic
-void white_knight_movement(int j, int i, const char* buffr, sPiece * piece);
+static void inline f_knight_move(int j, int i, int y, int x, int who_move, const char* buffr);
 
 //general
 void chess_piece(unordered_map * map, int j, int i, int range, const char* f_buffr, sPiece * piece);
@@ -306,13 +299,13 @@ static void inline moveStraightUp(int j, int i, int howOften, int who_move, cons
 			{
 
 		            if(board_num[it_backward][i] == -1 || board_num[it_backward][i] == 0)
-			    {
-					if(nHowMuchIsNotField > 0)
-					{
-						break;
-					}
+					 {
+							if(nHowMuchIsNotField > 0)
+							{
+								break;
+							}
 
-                            }
+                     }
 
 
 			    //hitting
@@ -361,10 +354,10 @@ static void inline moveStraightDown(int j, int i, int nRange, int howOften, int 
 
 			    if(board_num[it_forward][i] == -1 || board_num[it_forward][i] == 0)
 			      {
-					if(nHowMuchIsNotField > 0)
-					{
-						break;
-					}
+						if(nHowMuchIsNotField > 0)
+						{
+							break;
+						}
 			      }
 			
 				
@@ -468,12 +461,12 @@ static void inline moveStraightLeft(int j, int i, int howOften, int who_move, co
 			    
 			   if(board_num[j][it_backward] == -1 || board_num[j][it_backward] == 0)
 		           {
-					if(nHowMuchIsNotField > 0)
-					{
-						break;
-					}
+							if(nHowMuchIsNotField > 0)
+							{
+								break;
+							}
 
-                           }
+				   }
 
 			   //hitting
 				if(nHowMuchIsNotField > 1)
@@ -579,7 +572,7 @@ int main(void)
 {
    unordered_map umap_chess[WIDTH * HEIGHT];  
 
-   //allocate mem for struct black and white rooks.
+   //allocate mem for struct black and white pieces.
    sPiece* _rook = calloc(4, sizeof(sPiece));
    sPiece* _knight = calloc(4, sizeof(sPiece));
 
@@ -664,27 +657,27 @@ label:
 				
 				//BlackKnight update
 				{ 
-					chess_piece(umap_chess, j, i, 0, buffr_field, &_knight[0]);
-					chess_piece(umap_chess, j, i, 0, buffr_field, &_knight[1]);
+					chess_piece(umap_chess, j, i, 8, buffr_field, &_knight[0]);
+					chess_piece(umap_chess, j, i, 8, buffr_field, &_knight[1]);
 				}
 
 				//WhiteKnight update
 				{
-					chess_piece(umap_chess, j, i, 0, buffr_field, &_knight[2]);
-					chess_piece(umap_chess, j, i, 0, buffr_field, &_knight[3]);
+					chess_piece(umap_chess, j, i, 8, buffr_field, &_knight[2]);
+					chess_piece(umap_chess, j, i, 8, buffr_field, &_knight[3]);
 				}
 
-				_GAME_STATE_LOOP;
+					_GAME_STATE_LOOP;
 			    }
 
 			    else
 			    { 
-				_GAME_STATE_LOOP;
+					_GAME_STATE_LOOP;
 			    }
 		   }
 		  else if(rc < -7)
 		  {   
-			_GAME_STATE_LOOP;
+				_GAME_STATE_LOOP;
 		  }
 		 
    
@@ -697,24 +690,71 @@ label:
   	 free(_rook);	 
 	 free(_knight);
 
+	 _rook = NULL;
+	 _knight = NULL;
+
    return EXIT_SUCCESS;
 }
 
-static void inline f_knight_move(int j, int i, int y, int x, int who_move, const char* buffr, sPiece * piece)
+static void inline f_knight_move(int j, int i, int y, int x, int who_move, const char* buffr)
 {	
 	if(strcmp(board_marks[j + y][i + x], buffr) == 0)
 	{
 		board_num[j + y][i + x] = board_num[j][i];
 		board_num[j][i] = board_fields[j][i];
 
-		piece->_nHowMuchFieldMovedX = i + x;
-		piece->_nHowMuchFieldMovedY = j + y;
-
 		bIsMove = who_move;
 
 	}
 }
 
+void knight_update(int j, int i, int whoIsNext, const char* f_buffr)
+{
+				//down
+				if(i <= 6 && j <= 5)
+				{
+					f_knight_move(j, i, 2, 1, whoIsNext, f_buffr);
+				}
+				
+				if(i >= 1 && j <= 5)
+				{
+					f_knight_move(j, i, 2, -1, whoIsNext, f_buffr);
+				}
+
+				//up 
+				if(i <= 6 && j >= 2)
+				{
+				    f_knight_move(j, i, -2, 1, whoIsNext, f_buffr);
+				}
+
+				if(i >= 1 && j >= 2)
+				{
+					f_knight_move(j, i, -2, -1, whoIsNext, f_buffr);
+				}
+
+				//right
+				if(i <= 5 && j <= 6)
+				{
+					f_knight_move(j, i, 1, 2, whoIsNext, f_buffr);	
+				}
+
+				if(i <= 5 && j >= 1)
+				{
+					f_knight_move(j, i, -1, 2, whoIsNext, f_buffr);	
+				}
+
+				//left
+				if(i >= 2 && j <= 6)
+				{
+					f_knight_move(j, i, 1, -2, whoIsNext, f_buffr);	
+				}
+
+				if(i >= 2 && j >= 1)
+				{
+					f_knight_move(j, i, -1, -2, whoIsNext, f_buffr);	
+				}
+
+}
 
 //chess piece update here
 void chess_piece(unordered_map * map, int j, int i, int range, const char* f_buffr, sPiece * piece)
@@ -742,118 +782,34 @@ void chess_piece(unordered_map * map, int j, int i, int range, const char* f_buf
 		/////////////////////
 		
 		//black knights update	
-		case 2:
-		  if(bIsMove)
-		  {
-			  for(int x = i; x < i + 17; x+=15)
-			  {
-					  //down-left
-					  if(STR_COMP((board_marks[j][x], f_buffr)) == 0)
-					  {
-							  /* printf("\nIt is the field!\n"); */
-							 board_num[j][x] = board_num[j][i];
-							 board_num[j][i] = board_fields[j][i];
-
-							 bIsMove = 0;
-
-							 piece->_nHowMuchFieldMovedX = x;
-					  }
-	
-					  //down-right
-					  if(STR_COMP((board_marks[j][x + 2], f_buffr)) == 0)
-					  {
-							  /* printf("\nIt is the field!\n"); */
-							 board_num[j][x + 2] = board_num[j][i];
-							 board_num[j][i] = board_fields[j][i];
-
-							 bIsMove = 0;
-							 piece->_nHowMuchFieldMovedX = x;
-					  }
-
-					  //right-down 
-					  if(STR_COMP((board_marks[j][x - 5], f_buffr)) == 0)
-					  {
-							  /* printf("\nIt is the field!\n"); */
-							 board_num[j][x - 5] = board_num[j][i];
-							 board_num[j][i] = board_fields[j][i];
-
-							 bIsMove = 0;
-							 piece->_nHowMuchFieldMovedX = x;
-					  }
-
-					  //left-down
-					  if(STR_COMP((board_marks[j][x - 9], f_buffr)) == 0)
-					  {
-							 board_num[j][x - 9] = board_num[j][i];
-							 board_num[j][i] = board_fields[j][i];
-
-							 bIsMove = 0;
-							 piece->_nHowMuchFieldMovedX = x;
-					  }
-
-			  }
-
-			  if(piece->_nHowMuchFieldMovedX >= 15)
-			   {
-				  for(int x = i; i - 17 <= x; x-=17)
-				  {
-					  //top-right
-					   if(STR_COMP((board_marks[j][x], f_buffr)) == 0)
-					   {
-								  board_num[j][x] = board_num[j][i];
-								  board_num[j][i] = board_fields[j][i];
-								  bIsMove = 0;
-					   }
-
-					   if(STR_COMP((board_marks[j][x + 2], f_buffr)) == 0)
-					   {
-								  board_num[j][x + 2] = board_num[j][i];
-								  board_num[j][i] = board_fields[j][i];
-								  bIsMove = 0;
-					   }
-				  }
-
-			   }
-	
-		  }
-
+		case 2:	
+			if(bIsMove)
+			{
+				 knight_update(j, i, 0, f_buffr); 
+			}
 		break;
 		
 		case 3:	
-
+			if(bIsMove)
+			{
+				 knight_update(j, i, 0, f_buffr); 
+			}
 		break;
 		/////////////////////
 
 		//white knights update
-		case 9:
+		case 9:	
 			if(!bIsMove)
 			{
-				  //upside loop
-					  for(int x = i; i - 17 <= x; x-=17)
-					  {
-						  //top-right
-						   if(STR_COMP((board_marks[j][x], f_buffr)) == 0)
-						   {
-									  board_num[j][x] = board_num[j][i];
-									  board_num[j][i] = board_fields[j][i];
-									  bIsMove = 1;
-						   }
-
-						   if(STR_COMP((board_marks[j][x + 2], f_buffr)) == 0)
-						   {
-									  board_num[j][x + 2] = board_num[j][i];
-									  board_num[j][i] = board_fields[j][i];
-									  bIsMove = 1;
-						   }
-					  }
-
-
+				knight_update(j, i, 1, f_buffr);
 			}
-
 		break;
 
-		case 10:
-				
+		case 10:	
+			if(!bIsMove)
+			{
+				knight_update(j, i, 1, f_buffr);
+			}
 		break;
 		/////////////////////
 	}
