@@ -107,9 +107,6 @@ typedef char* UTF_8;
  * ■ □
  */
 
-
-
-
 //Chess fields
 UTF_8 WhiteField = " ■";
 UTF_8 BlackField = " □";
@@ -145,7 +142,7 @@ int32_t board_fields[WIDTH][HEIGHT] =  {-1, 0,-1, 0,-1, 0,-1, 0,
 
 
 int32_t board_num[WIDTH][HEIGHT] = 	{-1, 0,-1, 0,-1, 0,-1, 0,
-           	                          1, 1, 1, 1, 1, 1, 1, 1,
+           	                          1,-1, 1,-1, 1, 1, 1, 1,
 									 -1, 0,-1, 0,-1, 0,-1, 0,
 									  0,-1, 0,-1, 0,-1, 0,-1,
 									 -1, 0,-1, 0,-1, 0,-1, 0,        //with figures 8 x 8
@@ -575,6 +572,7 @@ int main(void)
    //allocate mem for struct black and white pieces.
    sPiece* _rook = calloc(4, sizeof(sPiece));
    sPiece* _knight = calloc(4, sizeof(sPiece));
+   sPiece* _bishop = calloc(4, sizeof(sPiece));
 
    int rc = 0;
    char buffr_mark[3] = "";
@@ -596,7 +594,11 @@ int main(void)
 
    //White Knight
    piece_ctor(&_knight[2], 7, 1, 9, 1, 7);
-   piece_ctor(&_knight[3], 7, 6, 10, 6, 7); 
+   piece_ctor(&_knight[3], 7, 6, 10, 6, 7);
+
+   //Black Bishop
+   piece_ctor(&_bishop[0], 0, 2, 11, 8, 8);
+   piece_ctor(&_bishop[1], 0, 5, 12, 8, 8);
 
 label:
 	
@@ -667,6 +669,12 @@ label:
 					chess_piece(umap_chess, j, i, 8, buffr_field, &_knight[3]);
 				}
 
+				//BlackBishop update
+				{
+				    chess_piece(umap_chess, j, i, 8, buffr_field, &_bishop[0]);
+					chess_piece(umap_chess, j, i, 8, buffr_field, &_bishop[1]);
+				}
+
 					_GAME_STATE_LOOP;
 			    }
 
@@ -689,9 +697,11 @@ label:
 	//free mem from pieces	
   	 free(_rook);	 
 	 free(_knight);
+	 free(_bishop);
 
 	 _rook = NULL;
 	 _knight = NULL;
+	 _bishop = NULL;
 
    return EXIT_SUCCESS;
 }
@@ -777,7 +787,7 @@ void chess_piece(unordered_map * map, int j, int i, int range, const char* f_buf
 	 	break;
 		
 		case 8: 
-			rook_white_update(map, j, i, range, f_buffr, piece);
+			rook_white_update(map, j, i, range, f_buffr, piece);	
 		break;
 		/////////////////////
 		
@@ -812,6 +822,134 @@ void chess_piece(unordered_map * map, int j, int i, int range, const char* f_buf
 			}
 		break;
 		/////////////////////
+		
+		//black bishops update
+		case 11:
+			if(bIsMove)
+			{	
+					//down and right
+					for(int y = j; y < 7; y++)
+					{
+						for(int x = i; x < 7; x++)
+						{
+								//right down
+							   if(STR_COMP((board_marks[y + 1][x], f_buffr)) == 0)
+							   {
+
+										 board_num[y + 1][x] = board_num[j][i];
+										 board_num[j][i] = board_fields[j][i];
+											
+										 piece->_nHowMuchFieldMovedX = x;
+										 piece->_nHowMuchFieldMovedY = y + 1;
+
+										 printf("\nfield x: %d\n", piece->_nHowMuchFieldMovedX);
+										 printf("\nfield y: %d\n", piece->_nHowMuchFieldMovedY);
+
+										 bIsMove = 0;
+								     
+
+							   }
+						}
+
+
+							for(int x = i; i - piece->_nHowMuchFieldMovedX < x; x--)
+							{
+									//left down
+								   if(STR_COMP((board_marks[y + 1][x], f_buffr)) == 0)
+								   {
+
+											 board_num[y + 1][x] = board_num[j][i];
+											 board_num[j][i] = board_fields[j][i];
+												
+											 piece->_nHowMuchFieldMovedX = x;
+											 piece->_nHowMuchFieldMovedY = y + 1;
+
+											 printf("\nfield x: %d\n", piece->_nHowMuchFieldMovedX);
+											 printf("\nfield y: %d\n", piece->_nHowMuchFieldMovedY);
+
+											 bIsMove = 0;
+										 
+
+								   }
+							}
+
+
+					}
+
+					
+
+					
+
+					
+
+
+					   //left down
+						   /* if(STR_COMP((board_marks[j + across][i - across], f_buffr)) == 0) */
+						   /* { */
+								 /* board_num[j + across][i - across] = board_num[j][i]; */
+								 /* board_num[j][i] = board_fields[j][i]; */
+								
+								 /* bIsMove = 0; */
+						   /* } */
+
+			 //up-right
+			 /* if(i >= 0 && j > 0) */
+			 /* { */
+				  /* for(int across = 1; across < i + piece->_nHowMuchFieldMovedY; across++) */
+				  /* { */
+						 
+						   /* if(STR_COMP((board_marks[j - across][i + across], f_buffr)) == 0) */
+						   /* { */
+							   /* /1* printf("\nThat's the point!\n"); *1/ */
+								 /* board_num[j - across][i + across] = board_num[j][i]; */
+								 /* board_num[j][i] = board_fields[j][i]; */
+
+								 /* piece->_nHowMuchFieldMovedX = i + across; */
+								 /* piece->_nHowMuchFieldMovedY = j - across; */
+
+								 /* printf("\nField x: %d\n", piece->_nHowMuchFieldMovedX); */
+								 /* printf("\nField y: %d\n", piece->_nHowMuchFieldMovedY); */
+
+								 /* bIsMove = 0; */
+
+						   /* } */
+
+				  /* } */
+			 /* } */
+			 
+			 //up-left
+			 /* if(i > 0 && j > 0) */
+			 /* { */
+				  /* for(int across = 1; across < piece->_nHowMuchFieldMovedY; across++) */
+				  /* { */
+						 
+						   /* if(STR_COMP((board_marks[j - across][i - across], f_buffr)) == 0) */
+						   /* { */
+							   /* /1* printf("\nThat's the point!\n"); *1/ */
+								 /* board_num[j - across][i - across] = board_num[j][i]; */
+								 /* board_num[j][i] = board_fields[j][i]; */
+
+								 /* piece->_nHowMuchFieldMovedX = i - across; */
+								 /* piece->_nHowMuchFieldMovedY = j - across; */
+
+								 /* printf("\nField x: %d\n", piece->_nHowMuchFieldMovedX); */
+								 /* printf("\nField y: %d\n", piece->_nHowMuchFieldMovedY); */
+
+								 /* bIsMove = 0; */
+
+						   /* } */
+
+				  /* } */
+
+			 /* } */
+
+			
+		break;
+
+		case 12:
+
+		break;
+		}
 	}
 }
 
@@ -899,7 +1037,25 @@ void drawMap()
 		  case 8:
 		      printf(" %s", WhiteRook);
 		  break;
-		  //////////////////////////////	
+		  //////////////////////////////
+		  
+		  //Bishops
+		  //Top-Left BlackBishop
+		  case 11:
+				printf(" %s", BlackBishop);
+		  break;
+
+		  //Top-Right BlackBishop
+		  case 12:
+				printf(" %s", BlackBishop);
+		  break;
+			
+		  //Bottom-Left WhiteBishop
+
+		  //Bottom-Right WhiteBishop
+
+
+		  //////////////////////////////
 
 		  /*
 		  case 5:
